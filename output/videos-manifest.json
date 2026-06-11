@@ -1,0 +1,104 @@
+﻿{
+    "generatedAt":  "2026-06-11T17:32:42-03:00",
+    "sourceRoot":  "C:\\Users\\USER\\OneDrive\\Documentos\\VideosTH",
+    "categories":  {
+                       "videos-ia":  [
+                                         {
+                                             "src":  "./output/videos-ia/Ia1.mp4",
+                                             "title":  "Ia1",
+                                             "description":  "Video IA com fundo",
+                                             "background":  "solid"
+                                         },
+                                         {
+                                             "src":  "./output/videos-ia/Ia2_web.mp4",
+                                             "title":  "Ia2",
+                                             "description":  "Video IA com fundo",
+                                             "background":  "solid"
+                                         },
+                                         {
+                                             "src":  "./output/videos-ia/Ia3.mp4",
+                                             "title":  "Ia3",
+                                             "description":  "Video IA com fundo",
+                                             "background":  "solid"
+                                         },
+                                         {
+                                             "src":  "./output/videos-ia/Ia4.mp4",
+                                             "title":  "Ia4",
+                                             "description":  "Video IA com fundo",
+                                             "background":  "solid"
+                                         },
+                                         {
+                                             "src":  "./output/videos-ia/Ia5.mp4",
+                                             "title":  "Ia5",
+                                             "description":  "Video IA com fundo",
+                                             "background":  "solid"
+                                         },
+                                         {
+                                             "src":  "./output/videos-ia/Ia6.mp4",
+                                             "title":  "Ia6",
+                                             "description":  "Video IA com fundo",
+                                             "background":  "solid"
+                                         },
+                                         {
+                                             "src":  "./output/videos-ia/Ia7.webm",
+                                             "title":  "Ia7",
+                                             "description":  "Video IA com fundo",
+                                             "background":  "solid"
+                                         }
+                                     ],
+                       "x2":  [
+                                  {
+                                      "src":  "./output/x2/2x.webm",
+                                      "title":  "2x",
+                                      "description":  "Efeito sem fundo",
+                                      "background":  "alpha"
+                                  }
+                              ],
+                       "x3":  [
+                                  {
+                                      "src":  "./output/x3/x3.webm",
+                                      "title":  "x3",
+                                      "description":  "Efeito sem fundo",
+                                      "background":  "alpha"
+                                  }
+                              ],
+                       "tap":  [
+                                   {
+                                       "src":  "./output/tap/tap.webm",
+                                       "title":  "tap",
+                                       "description":  "Efeito sem fundo",
+                                       "background":  "alpha"
+                                   },
+                                   {
+                                       "src":  "./output/tap/tap-2.webm",
+                                       "title":  "tap 2",
+                                       "description":  "Efeito sem fundo",
+                                       "background":  "alpha"
+                                   }
+                               ],
+                       "heart-me":  [
+                                        {
+                                            "src":  "./output/heart-me/heart-me.webm",
+                                            "title":  "heart me",
+                                            "description":  "Efeito sem fundo",
+                                            "background":  "alpha"
+                                        }
+                                    ],
+                       "glove":  [
+                                     {
+                                         "src":  "./output/glove/glove.webm",
+                                         "title":  "glove",
+                                         "description":  "Efeito sem fundo",
+                                         "background":  "alpha"
+                                     }
+                                 ],
+                       "popular":  [
+                                       {
+                                           "src":  "./output/popular/popular.webm",
+                                           "title":  "popular",
+                                           "description":  "Efeito sem fundo",
+                                           "background":  "alpha"
+                                       }
+                                   ]
+                   }
+}
