@@ -1,5 +1,6 @@
 const DEFAULT_LANG = "pt";
 const WHATSAPP_NUMBER = "5518996164798";
+const LIKES_API_URL = "/api/likes";
 const LIKES_STORAGE_KEY = "thdev-livefx-video-likes";
 const LIKES_COOKIE_KEY = "thdev_livefx_video_likes";
 
@@ -358,6 +359,15 @@ function getVideoLikes(src) {
   return Number(videoLikes[src] || 0);
 }
 
+function normalizeLikes(rawLikes) {
+  if (!rawLikes || typeof rawLikes !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(rawLikes)
+      .map(([src, count]) => [src, Number(count) || 0])
+      .filter(([src]) => typeof src === "string" && src.length > 0)
+  );
+}
+
 function updateLikeButton(button, count) {
   if (!button) return;
   const countElement = button.querySelector("[data-like-count]");
@@ -366,11 +376,49 @@ function updateLikeButton(button, count) {
   }
 }
 
-function incrementVideoLike(src) {
+function refreshLikeButtons() {
+  document.querySelectorAll("[data-like-src]").forEach((button) => {
+    updateLikeButton(button, getVideoLikes(button.dataset.likeSrc || ""));
+  });
+}
+
+async function syncGlobalLikes() {
+  try {
+    const response = await fetch(LIKES_API_URL, { cache: "no-store" });
+    if (!response.ok) return false;
+    const data = await response.json();
+    videoLikes = normalizeLikes(data.likes);
+    saveLikes();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function incrementVideoLike(src) {
   if (!src) return 0;
-  videoLikes[src] = getVideoLikes(src) + 1;
+  const optimisticCount = getVideoLikes(src) + 1;
+  videoLikes[src] = optimisticCount;
   saveLikes();
-  return videoLikes[src];
+
+  try {
+    const response = await fetch(LIKES_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: src }),
+    });
+
+    if (!response.ok) return optimisticCount;
+    const data = await response.json();
+    const globalCount = Number(data.count);
+    if (!Number.isFinite(globalCount)) return optimisticCount;
+
+    videoLikes[src] = globalCount;
+    saveLikes();
+    return globalCount;
+  } catch {
+    return optimisticCount;
+  }
 }
 
 function buildWhatsappUrl(lang) {
@@ -605,12 +653,15 @@ function bindPortfolioEvents() {
   }
 
   if (gridContainer) {
-    gridContainer.addEventListener("click", (event) => {
+    gridContainer.addEventListener("click", async (event) => {
       const likeButton = event.target.closest("[data-like-src]");
       if (likeButton) {
         event.preventDefault();
         event.stopPropagation();
-        const count = incrementVideoLike(likeButton.dataset.likeSrc || "");
+        const src = likeButton.dataset.likeSrc || "";
+        const optimisticCount = getVideoLikes(src) + 1;
+        updateLikeButton(likeButton, optimisticCount);
+        const count = await incrementVideoLike(src);
         updateLikeButton(likeButton, count);
         return;
       }
@@ -668,7 +719,17 @@ async function initPortfolio() {
   renderTabs();
   renderGrid();
   await loadManifest();
+  await syncGlobalLikes();
   renderGrid();
+}
+
+function initLikesSync() {
+  window.setInterval(async () => {
+    const synced = await syncGlobalLikes();
+    if (synced) {
+      refreshLikeButtons();
+    }
+  }, 30000);
 }
 
 function hardenVideos(scope = document) {
@@ -714,6 +775,7 @@ function initReveal() {
 
 initLanguageGate();
 initPortfolio();
+initLikesSync();
 initReveal();
 hardenVideos(document);
 bindProtectionEvents();
