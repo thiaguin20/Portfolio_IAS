@@ -19,7 +19,6 @@ O site foi criado para funcionar como vitrine dos meus trabalhos com IA visual, 
 - Portfolio dinamico carregado por manifesto JSON
 - Categorias para videos IA e efeitos de live
 - Preview em modal para visualizar os videos em tamanho maior
-- Sistema de curtidas globais por video usando API serverless e Redis/KV
 - Layout responsivo para desktop e mobile
 - Suporte a Portugues, Espanhol e Ingles
 - CTA direto para orcamento via WhatsApp
@@ -64,26 +63,6 @@ Depois acesse:
 ```text
 http://localhost:5500/
 ```
-
-## Curtidas globais
-
-As curtidas globais usam a rota serverless `api/likes.js`. Para funcionar em producao, configure um Redis REST compativel com Upstash/Vercel KV no projeto da Vercel.
-
-Variaveis aceitas:
-
-```text
-KV_REST_API_URL
-KV_REST_API_TOKEN
-```
-
-Ou:
-
-```text
-UPSTASH_REDIS_REST_URL
-UPSTASH_REDIS_REST_TOKEN
-```
-
-Sem essas variaveis, o site usa fallback local no navegador.
 
 ## Autor
 

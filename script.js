@@ -1,8 +1,5 @@
 const DEFAULT_LANG = "pt";
 const WHATSAPP_NUMBER = "5518996164798";
-const LIKES_API_URL = "/api/likes";
-const LIKES_STORAGE_KEY = "thdev-livefx-video-likes";
-const LIKES_COOKIE_KEY = "thdev_livefx_video_likes";
 
 const I18N = {
   pt: {
@@ -72,7 +69,6 @@ const I18N = {
     categoryGlove: "Glove",
     categoryPopular: "Popular",
     videoZoom: "Ver maior",
-    likeAria: "Curtir vídeo",
     videoNoTitle: "Vídeo sem título",
     videoDescSolid: "Vídeo com IA para composição de cena e narrativa visual.",
     videoDescAlpha: "Efeito com transparência para integração direta na live.",
@@ -148,7 +144,6 @@ const I18N = {
     categoryGlove: "Glove",
     categoryPopular: "Popular",
     videoZoom: "Ver más grande",
-    likeAria: "Me gusta el video",
     videoNoTitle: "Video sin título",
     videoDescSolid: "Video con IA para composición de escena y narrativa visual.",
     videoDescAlpha: "Efecto con transparencia para integración directa en la live.",
@@ -224,7 +219,6 @@ const I18N = {
     categoryGlove: "Glove",
     categoryPopular: "Popular",
     videoZoom: "View larger",
-    likeAria: "Like video",
     videoNoTitle: "Untitled video",
     videoDescSolid: "AI video for scene composition and visual storytelling.",
     videoDescAlpha: "Transparent effect for direct live integration.",
@@ -258,7 +252,6 @@ const emptyLibrary = {
 let portfolioLibrary = structuredClone(emptyLibrary);
 let currentLanguage = DEFAULT_LANG;
 let activeCategory = portfolioCategories[0].id;
-let videoLikes = loadLikes();
 
 const tabsContainer = document.getElementById("portfolioTabs");
 const gridContainer = document.getElementById("portfolioGrid");
@@ -304,121 +297,6 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function getCookieValue(name) {
-  const cookie = document.cookie
-    .split("; ")
-    .find((item) => item.startsWith(`${name}=`));
-  return cookie ? cookie.slice(name.length + 1) : "";
-}
-
-function loadLikes() {
-  const candidates = [];
-
-  try {
-    if (window.localStorage) {
-      candidates.push(window.localStorage.getItem(LIKES_STORAGE_KEY));
-    }
-  } catch {
-    // Some embedded browsers block localStorage. Cookies handle persistence there.
-  }
-
-  candidates.push(getCookieValue(LIKES_COOKIE_KEY));
-
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    try {
-      const parsedLikes = JSON.parse(decodeURIComponent(candidate));
-      if (parsedLikes && typeof parsedLikes === "object") {
-        return parsedLikes;
-      }
-    } catch {
-      // Try the next persistence source.
-    }
-  }
-
-  return {};
-}
-
-function saveLikes() {
-  const serializedLikes = JSON.stringify(videoLikes);
-
-  try {
-    if (window.localStorage) {
-      window.localStorage.setItem(LIKES_STORAGE_KEY, serializedLikes);
-    }
-  } catch {
-    // Cookies below keep likes after refresh when localStorage is unavailable.
-  }
-
-  document.cookie = `${LIKES_COOKIE_KEY}=${encodeURIComponent(serializedLikes)}; max-age=31536000; path=/; SameSite=Lax`;
-}
-
-function getVideoLikes(src) {
-  return Number(videoLikes[src] || 0);
-}
-
-function normalizeLikes(rawLikes) {
-  if (!rawLikes || typeof rawLikes !== "object") return {};
-  return Object.fromEntries(
-    Object.entries(rawLikes)
-      .map(([src, count]) => [src, Number(count) || 0])
-      .filter(([src]) => typeof src === "string" && src.length > 0)
-  );
-}
-
-function updateLikeButton(button, count) {
-  if (!button) return;
-  const countElement = button.querySelector("[data-like-count]");
-  if (countElement) {
-    countElement.textContent = count.toString();
-  }
-}
-
-function refreshLikeButtons() {
-  document.querySelectorAll("[data-like-src]").forEach((button) => {
-    updateLikeButton(button, getVideoLikes(button.dataset.likeSrc || ""));
-  });
-}
-
-async function syncGlobalLikes() {
-  try {
-    const response = await fetch(LIKES_API_URL, { cache: "no-store" });
-    if (!response.ok) return false;
-    const data = await response.json();
-    videoLikes = normalizeLikes(data.likes);
-    saveLikes();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function incrementVideoLike(src) {
-  if (!src) return 0;
-  const optimisticCount = getVideoLikes(src) + 1;
-  videoLikes[src] = optimisticCount;
-  saveLikes();
-
-  try {
-    const response = await fetch(LIKES_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: src }),
-    });
-
-    if (!response.ok) return optimisticCount;
-    const data = await response.json();
-    const globalCount = Number(data.count);
-    if (!Number.isFinite(globalCount)) return optimisticCount;
-
-    videoLikes[src] = globalCount;
-    saveLikes();
-    return globalCount;
-  } catch {
-    return optimisticCount;
-  }
 }
 
 function buildWhatsappUrl(lang) {
@@ -567,15 +445,10 @@ function renderGrid() {
             const src = escapeHtml(video.src || "");
             const alpha = isAlphaVideo(video);
             const alphaClass = alpha ? " is-alpha" : " is-solid";
-            const likes = getVideoLikes(video.src || "");
             return `
               <article class="portfolio-card is-clickable${alphaClass}" data-src="${src}" data-alpha="${alpha ? "1" : "0"}" aria-label="${escapeHtml(t("modalTitle"))}">
                 <div class="portfolio-frame">
                   <video src="${src}" autoplay muted loop playsinline preload="metadata" controlslist="nodownload noremoteplayback nofullscreen" disablepictureinpicture disableremoteplayback></video>
-                  <button class="portfolio-like" type="button" data-like-src="${src}" aria-label="${escapeHtml(t("likeAria"))}">
-                    <span aria-hidden="true">♥</span>
-                    <strong data-like-count>${likes}</strong>
-                  </button>
                   <button class="portfolio-zoom" type="button">${escapeHtml(t("videoZoom"))}</button>
                 </div>
               </article>
@@ -653,19 +526,7 @@ function bindPortfolioEvents() {
   }
 
   if (gridContainer) {
-    gridContainer.addEventListener("click", async (event) => {
-      const likeButton = event.target.closest("[data-like-src]");
-      if (likeButton) {
-        event.preventDefault();
-        event.stopPropagation();
-        const src = likeButton.dataset.likeSrc || "";
-        const optimisticCount = getVideoLikes(src) + 1;
-        updateLikeButton(likeButton, optimisticCount);
-        const count = await incrementVideoLike(src);
-        updateLikeButton(likeButton, count);
-        return;
-      }
-
+    gridContainer.addEventListener("click", (event) => {
       const card = event.target.closest(".portfolio-card.is-clickable");
       if (!card) return;
       const alpha = card.dataset.alpha === "1";
@@ -719,17 +580,7 @@ async function initPortfolio() {
   renderTabs();
   renderGrid();
   await loadManifest();
-  await syncGlobalLikes();
   renderGrid();
-}
-
-function initLikesSync() {
-  window.setInterval(async () => {
-    const synced = await syncGlobalLikes();
-    if (synced) {
-      refreshLikeButtons();
-    }
-  }, 30000);
 }
 
 function hardenVideos(scope = document) {
@@ -775,7 +626,6 @@ function initReveal() {
 
 initLanguageGate();
 initPortfolio();
-initLikesSync();
 initReveal();
 hardenVideos(document);
 bindProtectionEvents();

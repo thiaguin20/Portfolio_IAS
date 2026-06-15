@@ -468,40 +468,6 @@ section {
   cursor: pointer;
 }
 
-.portfolio-like {
-  position: absolute;
-  left: 0.6rem;
-  bottom: 0.6rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-width: 54px;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  color: #f0f6ff;
-  background: rgba(6, 13, 27, 0.72);
-  border-radius: 999px;
-  padding: 0.35rem 0.65rem;
-  font-family: "Sora", sans-serif;
-  font-size: 0.76rem;
-  cursor: pointer;
-  z-index: 3;
-}
-
-.portfolio-like span {
-  color: #ff6b95;
-  font-size: 0.88rem;
-  line-height: 1;
-}
-
-.portfolio-like strong {
-  font-size: 0.78rem;
-}
-
-.portfolio-like:hover {
-  background: rgba(255, 107, 149, 0.2);
-}
-
 .portfolio-meta {
   padding: 1rem;
 }
