@@ -1,6 +1,7 @@
 const DEFAULT_LANG = "pt";
 const WHATSAPP_NUMBER = "5518996164798";
 const LIKES_STORAGE_KEY = "thdev-livefx-video-likes";
+const LIKES_COOKIE_KEY = "thdev_livefx_video_likes";
 
 const I18N = {
   pt: {
@@ -304,21 +305,53 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function getCookieValue(name) {
+  const cookie = document.cookie
+    .split("; ")
+    .find((item) => item.startsWith(`${name}=`));
+  return cookie ? cookie.slice(name.length + 1) : "";
+}
+
 function loadLikes() {
+  const candidates = [];
+
   try {
-    const storedLikes = JSON.parse(localStorage.getItem(LIKES_STORAGE_KEY) || "{}");
-    return storedLikes && typeof storedLikes === "object" ? storedLikes : {};
+    if (window.localStorage) {
+      candidates.push(window.localStorage.getItem(LIKES_STORAGE_KEY));
+    }
   } catch {
-    return {};
+    // Some embedded browsers block localStorage. Cookies handle persistence there.
   }
+
+  candidates.push(getCookieValue(LIKES_COOKIE_KEY));
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      const parsedLikes = JSON.parse(decodeURIComponent(candidate));
+      if (parsedLikes && typeof parsedLikes === "object") {
+        return parsedLikes;
+      }
+    } catch {
+      // Try the next persistence source.
+    }
+  }
+
+  return {};
 }
 
 function saveLikes() {
+  const serializedLikes = JSON.stringify(videoLikes);
+
   try {
-    localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(videoLikes));
+    if (window.localStorage) {
+      window.localStorage.setItem(LIKES_STORAGE_KEY, serializedLikes);
+    }
   } catch {
-    // Likes still work for the current session if localStorage is unavailable.
+    // Cookies below keep likes after refresh when localStorage is unavailable.
   }
+
+  document.cookie = `${LIKES_COOKIE_KEY}=${encodeURIComponent(serializedLikes)}; max-age=31536000; path=/; SameSite=Lax`;
 }
 
 function getVideoLikes(src) {
